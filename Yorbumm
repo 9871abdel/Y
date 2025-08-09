@@ -1,0 +1,98 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "PetDuperGui"
+screenGui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 180, 0, 80)
+frame.Position = UDim2.new(1, -190, 0, 10) -- top-right corner
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 25)
+title.BackgroundTransparency = 1
+title.Text = "Pet Visual Duper"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.Position = UDim2.new(0, 0, 0, 5)
+
+local petInfo = Instance.new("TextLabel", frame)
+petInfo.Size = UDim2.new(1, 0, 0, 20)
+petInfo.Position = UDim2.new(0, 0, 0, 35)
+petInfo.BackgroundTransparency = 1
+petInfo.TextColor3 = Color3.fromRGB(255, 255, 150)
+petInfo.Font = Enum.Font.Gotham
+petInfo.TextSize = 14
+petInfo.Text = "Equipped Pet: [None]"
+petInfo.TextWrapped = true
+
+local dupeButton = Instance.new("TextButton", frame)
+dupeButton.Size = UDim2.new(0.9, 0, 0, 30)
+dupeButton.Position = UDim2.new(0.05, 0, 1, -35)
+dupeButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+dupeButton.TextColor3 = Color3.new(1,1,1)
+dupeButton.Text = "Dupe"
+dupeButton.Font = Enum.Font.GothamBold
+dupeButton.TextSize = 18
+dupeButton.AutoButtonColor = false
+Instance.new("UICorner", dupeButton).CornerRadius = UDim.new(0, 8)
+
+dupeButton.MouseEnter:Connect(function()
+	dupeButton.BackgroundColor3 = dupeButton.BackgroundColor3:lerp(Color3.new(1,1,1), 0.3)
+end)
+dupeButton.MouseLeave:Connect(function()
+	dupeButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+end)
+
+local function getEquippedPetTool()
+	character = player.Character or player.CharacterAdded:Wait()
+	for _, child in pairs(character:GetChildren()) do
+		if child:IsA("Tool") and child.Name:find("Age") then
+			return child
+		end
+	end
+	return nil
+end
+
+local function updatePetInfo()
+	while true do
+		task.wait(1)
+		local pet = getEquippedPetTool()
+		if pet then
+			petInfo.Text = "Equipped Pet: " .. pet.Name
+		else
+			petInfo.Text = "Equipped Pet: [None]"
+		end
+	end
+end
+task.spawn(updatePetInfo)
+
+-- Replace this with your real duping code
+local function autoDupePet()
+	local pet = getEquippedPetTool()
+	if not pet then
+		dupeButton.Text = "No Pet Equipped!"
+		task.wait(2)
+		dupeButton.Text = "Dupe"
+		return
+	end
+
+	dupeButton.Text = "Duping..."
+	task.wait(2) -- simulate dupe process
+
+	-- No visual name change or tag here, totally silent
+	-- Your duplication commands go here, whatever you use to dupe the pet
+	-- For example: call a remote, fire a server event, or manipulate inventory
+
+	dupeButton.Text = "Dupe"
+end
+
+dupeButton.MouseButton1Click:Connect(autoDupePet)
