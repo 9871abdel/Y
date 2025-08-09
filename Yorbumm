@@ -1,98 +1,91 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player:WaitForChild("Backpack")
 
-local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "PetDuperGui"
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PetDupeGUI"
 screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 180, 0, 80)
-frame.Position = UDim2.new(1, -190, 0, 10) -- top-right corner
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+frame.Size = UDim2.new(0, 230, 0, 130)
+frame.Position = UDim2.new(0.05, 0, 0.8, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Draggable = true
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
 local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 25)
-title.BackgroundTransparency = 1
-title.Text = "Pet Visual Duper"
+title.Text = "🐾 Pet Dupe Visual"
+title.Font = Enum.Font.FredokaOne
+title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(1, 0, 0, 30)
 title.Position = UDim2.new(0, 0, 0, 5)
 
-local petInfo = Instance.new("TextLabel", frame)
-petInfo.Size = UDim2.new(1, 0, 0, 20)
-petInfo.Position = UDim2.new(0, 0, 0, 35)
-petInfo.BackgroundTransparency = 1
-petInfo.TextColor3 = Color3.fromRGB(255, 255, 150)
-petInfo.Font = Enum.Font.Gotham
-petInfo.TextSize = 14
-petInfo.Text = "Equipped Pet: [None]"
-petInfo.TextWrapped = true
+local petLabel = Instance.new("TextLabel", frame)
+petLabel.Text = "Equipped Pet: [None]"
+petLabel.Font = Enum.Font.Gotham
+petLabel.TextSize = 16
+petLabel.TextColor3 = Color3.fromRGB(255, 230, 180)
+petLabel.BackgroundTransparency = 1
+petLabel.Position = UDim2.new(0, 10, 0, 40)
+petLabel.Size = UDim2.new(1, -20, 0, 25)
+petLabel.TextWrapped = true
 
 local dupeButton = Instance.new("TextButton", frame)
-dupeButton.Size = UDim2.new(0.9, 0, 0, 30)
-dupeButton.Position = UDim2.new(0.05, 0, 1, -35)
+dupeButton.Size = UDim2.new(0.9, 0, 0, 40)
+dupeButton.Position = UDim2.new(0.05, 0, 0, 75)
 dupeButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-dupeButton.TextColor3 = Color3.new(1,1,1)
-dupeButton.Text = "Dupe"
-dupeButton.Font = Enum.Font.GothamBold
+dupeButton.Text = "Duplicate Equipped Pet"
+dupeButton.Font = Enum.Font.FredokaOne
 dupeButton.TextSize = 18
+dupeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 dupeButton.AutoButtonColor = false
 Instance.new("UICorner", dupeButton).CornerRadius = UDim.new(0, 8)
+local stroke = Instance.new("UIStroke", dupeButton)
+stroke.Color = Color3.fromRGB(0, 0, 0)
+stroke.Thickness = 1.2
 
-dupeButton.MouseEnter:Connect(function()
-	dupeButton.BackgroundColor3 = dupeButton.BackgroundColor3:lerp(Color3.new(1,1,1), 0.3)
+local function getEquippedPet()
+    character = player.Character or player.CharacterAdded:Wait()
+    for _, tool in ipairs(character:GetChildren()) do
+        if tool:IsA("Tool") and (tool.Name:find("Kitsune") or tool.Name:find("Shiny Kitsune")) then
+            return tool
+        end
+    end
+    return nil
+end
+
+local function updatePetLabel()
+    local pet = getEquippedPet()
+    if pet then
+        petLabel.Text = "Equipped Pet: " .. pet.Name
+    else
+        petLabel.Text = "Equipped Pet: [None]"
+    end
+end
+
+dupeButton.MouseButton1Click:Connect(function()
+    local pet = getEquippedPet()
+    if pet then
+        local clone = pet:Clone()
+        clone.Parent = backpack
+        dupeButton.Text = "Duplicated: " .. clone.Name
+        wait(2)
+        dupeButton.Text = "Duplicate Equipped Pet"
+    else
+        dupeButton.Text = "No pet equipped!"
+        wait(2)
+        dupeButton.Text = "Duplicate Equipped Pet"
+    end
 end)
-dupeButton.MouseLeave:Connect(function()
-	dupeButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-end)
 
-local function getEquippedPetTool()
-	character = player.Character or player.CharacterAdded:Wait()
-	for _, child in pairs(character:GetChildren()) do
-		if child:IsA("Tool") and child.Name:find("Age") then
-			return child
-		end
-	end
-	return nil
+while true do
+    updatePetLabel()
+    wait(1)
 end
-
-local function updatePetInfo()
-	while true do
-		task.wait(1)
-		local pet = getEquippedPetTool()
-		if pet then
-			petInfo.Text = "Equipped Pet: " .. pet.Name
-		else
-			petInfo.Text = "Equipped Pet: [None]"
-		end
-	end
-end
-task.spawn(updatePetInfo)
-
--- Replace this with your real duping code
-local function autoDupePet()
-	local pet = getEquippedPetTool()
-	if not pet then
-		dupeButton.Text = "No Pet Equipped!"
-		task.wait(2)
-		dupeButton.Text = "Dupe"
-		return
-	end
-
-	dupeButton.Text = "Duping..."
-	task.wait(2) -- simulate dupe process
-
-	-- No visual name change or tag here, totally silent
-	-- Your duplication commands go here, whatever you use to dupe the pet
-	-- For example: call a remote, fire a server event, or manipulate inventory
-
-	dupeButton.Text = "Dupe"
-end
-
-dupeButton.MouseButton1Click:Connect(autoDupePet)
